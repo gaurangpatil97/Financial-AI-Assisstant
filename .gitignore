@@ -1,0 +1,37 @@
+# Virtual environment
+venv/
+
+# Data files — too large for git
+Data/
+
+# Temp files
+tmp_images/
+
+# ChromaDB — generated locally
+textTabularRAGv1/chroma_store/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Environment variables — contains API keys
+textTabularRAGv1/.env
+
+# Logs
+textTabularRAGv1/logs/
+
+# Uploads
+textTabularRAGv1/uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+
+# Debug and temp scripts
+debug*.py
+reingest*.py
+results.txt
