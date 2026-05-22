@@ -135,6 +135,10 @@ def run_tests() -> None:
             print(f"Q{i:02d} [{section}] - {status}")
             print(f"  Question: {question}")
             print(f"  Expected: {expected} | Got: {got_value}")
+            print(f"  Agent: {data.get('agent_used', 'unknown')}")
+            print(f"  Trace: {data.get('agent_trace', '')}")
+            print(f"  Citations: {data.get('citations', [])}")
+            print(f"  Full Answer: {data.get('answer', '')}")
 
             results.append(
                 {
@@ -153,6 +157,10 @@ def run_tests() -> None:
             print(f"Q{i:02d} [{section}] - ERROR")
             print(f"  Question: {question}")
             print(f"  Error: {exc}")
+            print(f"  Agent: unknown")
+            print(f"  Trace: ")
+            print(f"  Citations: []")
+            print(f"  Full Answer: ERROR: {exc}")
 
             results.append(
                 {

@@ -1,6 +1,7 @@
 import ollama
 from logger import logger
 from config import get_settings
+from app.core.calculation_agent import try_calculation
 from app.core.embedder import generate_embeddings
 from app.db.vector_store import query_collection, query_collection_by_type
 from app.models.schemas import Citation, QueryResponse
@@ -31,6 +32,24 @@ Answer:"""
 def query_rag(question: str, collection_names: list[str], year: str = None) -> QueryResponse:
     if settings.EXPERIMENT == "exp1":
         collection_names = ["ca_structured_financials"]
+
+    logger.info(f"[RAG] Calling try_calculation for: {question}")
+    calc_result = try_calculation(question)
+    if calc_result is not None:
+        answer = f"{calc_result['answer']} (computed: {calc_result['formula_used']})"
+        citations = [Citation(
+            filename="Craftsman Auto.xlsx",
+            page=calc_result.get('year', 'computed'),
+            collection="ca_structured_financials"
+        )]
+        return QueryResponse(
+            answer=answer,
+            citations=citations,
+            collections_searched=collection_names,
+            agent_used="calculation_agent",
+            agent_trace=calc_result.get("trace", "")
+        )
+
     logger.info(f"Processing query: {question}")
 
     # Embed the question
@@ -86,5 +105,7 @@ def query_rag(question: str, collection_names: list[str], year: str = None) -> Q
     return QueryResponse(
         answer=answer,
         citations=citations,
-        collections_searched=collection_names
+        collections_searched=collection_names,
+        agent_used="rag",
+        agent_trace="Normal RAG pipeline used"
     )
