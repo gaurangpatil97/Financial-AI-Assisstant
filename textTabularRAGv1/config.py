@@ -2,6 +2,8 @@ from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 class Settings(BaseSettings):
+    EXPERIMENT: str = "exp1"
+    EXCEL_FILE_PATH: str = "D:/financial_rag/Data/Craftsman Automations/Craftsman Auto.xlsx"
     # Server
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
@@ -9,7 +11,7 @@ class Settings(BaseSettings):
 
     # Data
     DATA_DIR: str = "D:/financial_rag/Data/Craftsman Automations"
-    CHROMA_PERSIST_DIR: str = "./chroma_store"
+    CHROMA_PERSIST_DIR: str = "./chroma_store/exp1_excel_only"
 
     # Embeddings
     EMBEDDING_MODEL: str = "BAAI/bge-large-en-v1.5"
@@ -21,7 +23,7 @@ class Settings(BaseSettings):
 
     # Ollama
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "gemma:7b"
+    OLLAMA_MODEL: str = "llama3.1:8b"
 
     # RAG
     TOP_K_CHUNKS: int = 6

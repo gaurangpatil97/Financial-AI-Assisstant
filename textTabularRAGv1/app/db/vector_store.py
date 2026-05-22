@@ -28,7 +28,17 @@ def store_chunks(chunks: list[dict], collection_name: str):
 
     for i, chunk in enumerate(chunks):
         chunk_type = chunk["metadata"].get("chunk_type", "text")
-        chunk_id = f"{chunk['metadata']['filename']}_p{chunk['metadata']['page']}_c{chunk['metadata']['chunk_index']}_{chunk_type}"
+        if "page" in chunk["metadata"]:
+            chunk_id = (
+                f"{chunk['metadata']['filename']}_p{chunk['metadata']['page']}_"
+                f"c{chunk['metadata']['chunk_index']}_{chunk_type}"
+            )
+        else:
+            chunk_id = (
+                f"{chunk['metadata']['filename']}_{chunk['metadata']['sheet']}_"
+                f"{chunk['metadata']['year']}_c{chunk['metadata'].get('chunk_index', 0)}_"
+                f"{chunk['metadata'].get('chunk_type', 'text')}"
+            )
 
         ids.append(chunk_id)
         embeddings.append(chunk["embedding"])
@@ -54,12 +64,20 @@ def query_collection(
     query_embedding: list[float],
     collection_name: str,
     top_k: int = None,
-    year: str = None
+    year: str = None,
+    sheet: str = None
 ) -> list[dict]:
     top_k = top_k or settings.TOP_K_CHUNKS
     collection = get_or_create_collection(collection_name)
 
-    where = {"year": year} if year else None
+    if year and sheet:
+        where = {"$and": [{"year": year}, {"sheet": sheet}]}
+    elif year:
+        where = {"year": year}
+    elif sheet:
+        where = {"sheet": sheet}
+    else:
+        where = None
 
     results = collection.query(
         query_embeddings=[query_embedding],

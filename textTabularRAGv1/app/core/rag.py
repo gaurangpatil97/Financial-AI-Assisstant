@@ -10,14 +10,15 @@ settings = get_settings()
 def build_prompt(question: str, chunks: list[dict]) -> str:
     context = ""
     for i, chunk in enumerate(chunks, start=1):
-        context += f"\n[{i}] From {chunk['metadata']['filename']} (Page {chunk['metadata']['page']}):\n"
+        page = chunk['metadata'].get('page') or chunk['metadata'].get('sheet', 'unknown')
+        context += f"\n[{i}] From {chunk['metadata']['filename']} (Page {page}):\n"
         context += chunk["content"] + "\n"
 
     prompt = f"""You are a financial expert assistant helping a Chartered Accountant (CA).
 Use ONLY the context provided below to answer the question.
-The context includes both text extracts and IMAGE CONTENT sections — treat IMAGE CONTENT sections as valid financial data.
-Always cite the source document and page number for every claim you make.
-If the answer is not in the context, say "I could not find this information in the provided documents."
+
+Cite the source.
+If not found say I could not find this information.
 
 Context:
 {context}
@@ -28,6 +29,8 @@ Answer:"""
     return prompt
 
 def query_rag(question: str, collection_names: list[str], year: str = None) -> QueryResponse:
+    if settings.EXPERIMENT == "exp1":
+        collection_names = ["ca_structured_financials"]
     logger.info(f"Processing query: {question}")
 
     # Embed the question
@@ -63,16 +66,19 @@ def query_rag(question: str, collection_names: list[str], year: str = None) -> Q
     )
     answer = response["message"]["content"]
 
-    # Build citations
+    # Build citations (handle PDF pages and Excel sheet/year metadata)
     citations = []
     seen = set()
     for chunk in top_chunks:
-        key = (chunk["metadata"]["filename"], chunk["metadata"]["page"])
+        filename = chunk["metadata"].get("filename", "unknown")
+        # Prefer 'page' (PDFs); fall back to 'sheet' (Excel). Use 'unknown' if neither present.
+        page = chunk["metadata"].get("page") or chunk["metadata"].get("sheet", "unknown")
+        key = (filename, page)
         if key not in seen:
             seen.add(key)
             citations.append(Citation(
-                filename=chunk["metadata"]["filename"],
-                page=chunk["metadata"]["page"],
+                filename=filename,
+                page=page,
                 collection=chunk["metadata"].get("collection", "unknown")
             ))
 

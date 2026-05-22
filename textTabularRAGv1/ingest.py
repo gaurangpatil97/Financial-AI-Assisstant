@@ -1,6 +1,7 @@
 from pathlib import Path
 from logger import logger
 from app.core.doc_router import route_document
+from app.core.excel_processor import extract_excel
 from app.core.chunker import chunk_documents
 from app.core.embedder import generate_embeddings
 from app.db.vector_store import store_chunks
@@ -73,6 +74,20 @@ def ingest_all():
             continue
 
     logger.success("All files ingested successfully!")
+
+def ingest_excel_only():
+    if settings.EXPERIMENT != "exp1":
+        logger.info(f"Skipping Excel-only ingest for experiment: {settings.EXPERIMENT}")
+        return
+
+    pages_data = extract_excel(settings.EXCEL_FILE_PATH)
+    chunks = chunk_documents(pages_data)
+    chunks = generate_embeddings(chunks)
+    store_chunks(chunks, "ca_structured_financials")
+    logger.success(f"Stored {len(chunks)} chunks in 'ca_structured_financials'")
     
 if __name__ == "__main__":
-    ingest_all()
+    if get_settings().EXPERIMENT == "exp1":
+        ingest_excel_only()
+    else:
+        ingest_all()

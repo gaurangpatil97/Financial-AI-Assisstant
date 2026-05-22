@@ -3,7 +3,7 @@ from typing import List, Optional
 
 class Citation(BaseModel):
     filename: str
-    page: int
+    page: int | str
     collection: str
 
 class QueryRequest(BaseModel):
