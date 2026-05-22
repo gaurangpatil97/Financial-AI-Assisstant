@@ -6,44 +6,44 @@ import requests
 
 BASE_URL = "http://localhost:8000/api/v1/query"
 RESULTS_DIR = Path("results")
-RESULTS_PATH = RESULTS_DIR / "exp1_excel_results.md"
+RESULTS_PATH = RESULTS_DIR / "infosys_exp1_excel_results.md"
 
 QUESTIONS = [
-    {"question": "What was the total sales revenue for FY2025?", "expected": "5690.48", "year": "2025", "section": "P&L"},
-    {"question": "What was the net profit for FY2025?", "expected": "194.57", "year": "2025", "section": "P&L"},
-    {"question": "What was the depreciation expense for FY2025?", "expected": "347.02", "year": "2025", "section": "P&L"},
-    {"question": "What was the EBITDA for FY2025?", "expected": "638.35", "year": "2025", "section": "P&L"},
-    {"question": "What was the total sales revenue for FY2024?", "expected": "4451.73", "year": "2024", "section": "P&L"},
-    {"question": "What was the net profit for FY2024?", "expected": "304.47", "year": "2024", "section": "P&L"},
-    {"question": "What was the depreciation for FY2024?", "expected": "277.69", "year": "2024", "section": "P&L"},
-    {"question": "What was the total sales revenue for FY2023?", "expected": "3182.6", "year": "2023", "section": "P&L"},
-    {"question": "What was the net profit for FY2023?", "expected": "248.39", "year": "2023", "section": "P&L"},
-    {"question": "What were the total borrowings for FY2025?", "expected": "2358.18", "year": "2025", "section": "Balance Sheet"},
-    {"question": "What was the networth for FY2025?", "expected": "2856.74", "year": "2025", "section": "Balance Sheet"},
-    {"question": "What were the reserves for FY2024?", "expected": "1647.42", "year": "2024", "section": "Balance Sheet"},
-    {"question": "What was cash from operating activity for FY2025?", "expected": "283.33", "year": "2025", "section": "Cash Flow"},
-    {"question": "What was cash from operating activity for FY2024?", "expected": "513.31", "year": "2024", "section": "Cash Flow"},
-    {"question": "What was the net cash flow for FY2023?", "expected": "-2.11", "year": "2023", "section": "Cash Flow"},
+    {"question": "What was the total sales revenue for FY2025?", "expected": "162990.0", "year": "2025", "section": "P&L"},
+    {"question": "What was the net profit for FY2025?", "expected": "26713.0", "year": "2025", "section": "P&L"},
+    {"question": "What was the depreciation expense for FY2025?", "expected": "4812.0", "year": "2025", "section": "P&L"},
+    {"question": "What was the EBITDA for FY2025?", "expected": "39236.0", "year": "2025", "section": "P&L"},
+    {"question": "What was the total sales revenue for FY2024?", "expected": "153670.0", "year": "2024", "section": "P&L"},
+    {"question": "What was the net profit for FY2024?", "expected": "26233.0", "year": "2024", "section": "P&L"},
+    {"question": "What was the depreciation for FY2024?", "expected": "4678.0", "year": "2024", "section": "P&L"},
+    {"question": "What was the total sales revenue for FY2023?", "expected": "146767.0", "year": "2023", "section": "P&L"},
+    {"question": "What was the net profit for FY2023?", "expected": "24095.0", "year": "2023", "section": "P&L"},
+    {"question": "What were the total borrowings for FY2025?", "expected": "8227.0", "year": "2025", "section": "Balance Sheet"},
+    {"question": "What was the networth for FY2025?", "expected": "95818.0", "year": "2025", "section": "Balance Sheet"},
+    {"question": "What were the reserves for FY2024?", "expected": "86045.0", "year": "2024", "section": "Balance Sheet"},
+    {"question": "What was cash from operating activity for FY2025?", "expected": "35694.0", "year": "2025", "section": "Cash Flow"},
+    {"question": "What was cash from operating activity for FY2024?", "expected": "25210.0", "year": "2024", "section": "Cash Flow"},
+    {"question": "What was the net cash flow for FY2023?", "expected": "-5299.0", "year": "2023", "section": "Cash Flow"},
 ]
 
 
 # Additional derived and cross-section questions (Q16-Q30)
 QUESTIONS += [
-    {"question": "What was the interest coverage ratio for FY2025?", "expected": "2.95", "year": "2025", "section": "Derived"},
-    {"question": "What was the debt to equity ratio for FY2025?", "expected": "0.83", "year": "2025", "section": "Derived"},
-    {"question": "What was the debt to equity ratio for FY2024?", "expected": "1.06", "year": "2024", "section": "Derived"},
-    {"question": "What was the debt to equity ratio for FY2023?", "expected": "0.90", "year": "2023", "section": "Derived"},
-    {"question": "What was the return on equity for FY2025?", "expected": "6.81", "year": "2025", "section": "Derived"},
-    {"question": "What was the return on equity for FY2024?", "expected": "18.36", "year": "2024", "section": "Derived"},
-    {"question": "What was the interest as percentage of sales for FY2025?", "expected": "3.81", "year": "2025", "section": "Derived"},
-    {"question": "What was the net profit margin for FY2025?", "expected": "3.42", "year": "2025", "section": "Derived"},
-    {"question": "What was the net profit margin for FY2024?", "expected": "6.84", "year": "2024", "section": "Derived"},
-    {"question": "What was the net profit margin for FY2023?", "expected": "7.80", "year": "2023", "section": "Derived"},
-    {"question": "What was the cash conversion ratio for FY2025?", "expected": "1.46", "year": "2025", "section": "Cross"},
-    {"question": "What was the cash conversion ratio for FY2024?", "expected": "1.69", "year": "2024", "section": "Cross"},
-    {"question": "What was the cash conversion ratio for FY2023?", "expected": "2.45", "year": "2023", "section": "Cross"},
-    {"question": "By how much did sales grow from FY2023 to FY2025?", "expected": "2507.88", "year": "2025", "section": "Trend"},
-    {"question": "By how much did net profit change from FY2024 to FY2025?", "expected": "-109.90", "year": "2025", "section": "Trend"},
+    {"question": "What was the interest coverage ratio for FY2025?", "expected": "94.32", "year": "2025", "section": "Derived"},
+    {"question": "What was the debt to equity ratio for FY2025?", "expected": "0.09", "year": "2025", "section": "Derived"},
+    {"question": "What was the debt to equity ratio for FY2024?", "expected": "0.09", "year": "2024", "section": "Derived"},
+    {"question": "What was the debt to equity ratio for FY2023?", "expected": "0.11", "year": "2023", "section": "Derived"},
+    {"question": "What was the return on equity for FY2025?", "expected": "27.9", "year": "2025", "section": "Derived"},
+    {"question": "What was the return on equity for FY2024?", "expected": "29.8", "year": "2024", "section": "Derived"},
+    {"question": "What was the interest as percentage of sales for FY2025?", "expected": "0.26", "year": "2025", "section": "Derived"},
+    {"question": "What was the net profit margin for FY2025?", "expected": "16.39", "year": "2025", "section": "Derived"},
+    {"question": "What was the net profit margin for FY2024?", "expected": "17.07", "year": "2024", "section": "Derived"},
+    {"question": "What was the net profit margin for FY2023?", "expected": "16.42", "year": "2023", "section": "Derived"},
+    {"question": "What was the cash conversion ratio for FY2025?", "expected": "1.336", "year": "2025", "section": "Cross"},
+    {"question": "What was the cash conversion ratio for FY2024?", "expected": "0.962", "year": "2024", "section": "Cross"},
+    {"question": "What was the cash conversion ratio for FY2023?", "expected": "0.932", "year": "2023", "section": "Cross"},
+    {"question": "By how much did sales grow from FY2023 to FY2025?", "expected": "16223.0", "year": "2025", "section": "Trend"},
+    {"question": "By how much did net profit change from FY2024 to FY2025?", "expected": "480.0", "year": "2025", "section": "Trend"},
 ]
 
 
@@ -113,7 +113,7 @@ def run_tests() -> None:
     total = len(QUESTIONS)
 
     print("=" * 72)
-    print(f"Running Exp1 Excel tests: {total} questions")
+    print(f"Running Infosys Exp1 Excel tests: {total} questions")
     print("=" * 72)
 
     for i, item in enumerate(QUESTIONS, start=1):

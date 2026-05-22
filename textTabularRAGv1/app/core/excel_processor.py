@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 from logger import logger
 from config import get_settings
@@ -17,6 +19,21 @@ def _find_row_index(df: pd.DataFrame, label: str) -> int | None:
             return idx
     return None
 
+def get_company_name(df: pd.DataFrame) -> str:
+    company_row_idx = _find_row_index(df, "COMPANY NAME")
+    if company_row_idx is None:
+        return "Unknown Company"
+
+    row = df.iloc[company_row_idx]
+    for col_idx in range(1, len(row)):
+        value = row.iloc[col_idx]
+        if pd.notna(value):
+            company_name = str(value).strip()
+            if company_name:
+                return company_name.title()
+
+    return "Unknown Company"
+
 def _parse_fiscal_years(header_row: pd.Series) -> list[str]:
     fiscal_years: list[str] = []
     for val in header_row.iloc[1:]:
@@ -32,6 +49,7 @@ def _parse_fiscal_years(header_row: pd.Series) -> list[str]:
             fiscal_years.append(f"FY{year}")
         except Exception:
             fiscal_years.append("")
+    logger.info(f"Fiscal years parsed: {fiscal_years}")
     return fiscal_years
 
 def _format_value(value: object) -> str | None:
@@ -78,7 +96,7 @@ def extract_excel(file_path: str) -> list[dict]:
     Extracts structured financial metrics from the "Data Sheet" sheet.
     Returns list of dicts with content and metadata.
     """
-    excel_path = settings.EXCEL_FILE_PATH
+    excel_path = file_path
     logger.info(f"Processing Excel: {excel_path}")
 
     df = pd.read_excel(excel_path, sheet_name="Data Sheet", header=None)
@@ -93,7 +111,13 @@ def extract_excel(file_path: str) -> list[dict]:
     profit_loss_metrics = [
         "Sales",
         "Raw Material Cost",
+        "Change in Inventory",
+        "Power and Fuel",
+        "Other Mfr. Exp",
         "Employee Cost",
+        "Selling and admin",
+        "Other Expenses",
+        "Other Income",
         "Depreciation",
         "Interest",
         "Profit before tax",
@@ -130,7 +154,8 @@ def extract_excel(file_path: str) -> list[dict]:
 
     chunks: list[dict] = []
     source_path = settings.EXCEL_FILE_PATH
-    filename = "Craftsman Auto.xlsx"
+    filename = Path(file_path).name
+    company_name = get_company_name(df)
 
     section_map = [
         ("Profit & Loss", "profit_loss", profit_loss),
@@ -143,7 +168,7 @@ def extract_excel(file_path: str) -> list[dict]:
             if not fy:
                 continue
             year_num = fy.replace("FY", "")
-            lines = [f"Craftsman Automation - {section_title} | {fy}"]
+            lines = [f"{company_name} - {section_title} | {fy}"]
 
             def get_metric_value(name: str) -> str | None:
                 if name not in metrics:
@@ -157,19 +182,28 @@ def extract_excel(file_path: str) -> list[dict]:
                 lines.append(f"{metric_name}: {value}")
 
             if section_title == "Profit & Loss":
-                pbt = get_metric_value("Profit before tax")
-                dep = get_metric_value("Depreciation")
-                interest = get_metric_value("Interest")
-                if pbt and dep and interest:
-                    try:
-                        ebitda_value = (
-                            float(pbt.replace(" Cr", "")) +
-                            float(dep.replace(" Cr", "")) +
-                            float(interest.replace(" Cr", ""))
-                        )
-                        lines.append(f"EBITDA: {ebitda_value:.2f} Cr")
-                    except ValueError:
-                        pass
+                ebitda_components = [
+                    "Raw Material Cost",
+                    "Power and Fuel",
+                    "Other Mfr. Exp",
+                    "Employee Cost",
+                    "Selling and admin",
+                    "Other Expenses",
+                ]
+
+                sales_val = None
+                sales = get_metric_value("Sales")
+                if sales:
+                    sales_val = float(sales.replace(" Cr", ""))
+
+                if sales_val:
+                    total_expenses = 0
+                    for comp in ebitda_components:
+                        val = get_metric_value(comp)
+                        if val:
+                            total_expenses += float(val.replace(" Cr", ""))
+                    ebitda_value = sales_val - total_expenses
+                    lines.append(f"EBITDA: {ebitda_value:.2f} Cr")
 
             if section_title == "Balance Sheet":
                 equity = get_metric_value("Equity Share Capital")
